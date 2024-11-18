@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Market Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-light: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent-blue: #3498db;
+            --accent-green: #2ecc71;
+            --accent-red: #e74c3c;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+        .cash-display {
+            background-color: var(--bg-light);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .stocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .stock-card {
+            background-color: var(--bg-light);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        .stock-card:hover {
+            transform: scale(1.05);
+        }
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .stock-symbol {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--accent-blue);
+        }
+        .stock-price {
+            font-size: 1.3rem;
+        }
+        .price-up { color: var(--accent-green); }
+        .price-down { color: var(--accent-red); }
+        .stock-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        .btn {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            border: 2px solid var(--accent-blue);
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background-color: var(--accent-blue);
+        }
+        .portfolio {
+            margin-top: 40px;
+            background-color: var(--bg-light);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .portfolio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .portfolio-holdings {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .portfolio-item {
+            background-color: var(--bg-dark);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .simulate-btn {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .simulate-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Stock Market Simulator</h1>
+            <div class="cash-display">Cash: $<span id="cash">10000.00</span></div>
+        </div>
+        
+        <button class="simulate-btn" onclick="simulateMarket()">Simulate Market</button>
+        
+        <div id="stockMarket" class="stocks-grid"></div>
+        
+        <div class="portfolio">
+            <div class="portfolio-header">
+                <h2>Portfolio</h2>
+                <span id="totalValue">Total Value: $0.00</span>
+            </div>
+            <div id="portfolioHoldings" class="portfolio-holdings"></div>
+        </div>
+    </div>
+
+    <script>
+        class StockMarket {
+            constructor() {
+                this.stocks = [
+                    { symbol: "TECH", name: "Tech Innovations Inc", price: 150.50, priceHistory: [150.50] },
+                    { symbol: "BANK", name: "Global Banking Corp", price: 85.25, priceHistory: [85.25] },
+                    { symbol: "ENERGY", name: "Green Energy Solutions", price: 65.75, priceHistory: [65.75] },
+                    { symbol: "HEALTH", name: "Medical Breakthroughs LLC", price: 110.30, priceHistory: [110.30] }
+                ];
+                this.cash = 10000;
+                this.portfolio = {};
+                this.renderStocks();
+            }
+
+            simulateMarket() {
+                this.stocks.forEach(stock => {
+                    const volatility = Math.random() * 0.1 - 0.05;
+                    stock.price *= (1 + volatility);
+                    stock.priceHistory.push(stock.price);
+                    
+                    if (stock.priceHistory.length > 10) {
+                        stock.priceHistory.shift();
+                    }
+                });
+                this.renderStocks();
+            }
+
+            buyStock(symbol) {
+                const stock = this.stocks.find(s => s.symbol === symbol);
+                const quantity = 1;
+                const totalCost = stock.price * quantity;
+                
+                if (totalCost <= this.cash) {
+                    this.cash -= totalCost;
+                    this.portfolio[symbol] = (this.portfolio[symbol] || 0) + quantity;
+                    this.renderStocks();
+                    return true;
+                }
+                alert("Not enough cash!");
+                return false;
+            }
+
+            sellStock(symbol) {
+                const stock = this.stocks.find(s => s.symbol === symbol);
+                const quantity = 1;
+                
+                if (this.portfolio[symbol] >= quantity) {
+                    const totalSale = stock.price * quantity;
+                    this.cash += totalSale;
+                    this.portfolio[symbol] -= quantity;
+                    
+                    if (this.portfolio[symbol] === 0) {
+                        delete this.portfolio[symbol];
+                    }
+                    this.renderStocks();
+                    return true;
+                }
+                alert("No shares to sell!");
+                return false;
+            }
+
+            calculatePortfolioValue() {
+                return Object.entries(this.portfolio).reduce((total, [symbol, quantity]) => {
+                    const stock = this.stocks.find(s => s.symbol === symbol);
+                    return total + (stock.price * quantity);
+                }, 0);
+            }
+
+            renderStocks() {
+                const marketDiv = document.getElementById('stockMarket');
+                const portfolioDiv = document.getElementById('portfolioHoldings');
+                const cashDiv = document.getElementById('cash');
+                const totalValueDiv = document.getElementById('totalValue');
+
+                cashDiv.textContent = this.cash.toFixed(2);
+                totalValueDiv.textContent = `Total Value: $${(this.cash + this.calculatePortfolioValue()).toFixed(2)}`;
+
+                marketDiv.innerHTML = this.stocks.map(stock => `
+                    <div class="stock-card">
+                        <div class="stock-header">
+                            <div class="stock-symbol">${stock.symbol}</div>
+                            <div class="stock-price ${stock.price > stock.priceHistory[0] ? 'price-up' : 'price-down'}">
+                                $${stock.price.toFixed(2)}
+                            </div>
+                        </div>
+                        <div>${stock.name}</div>
+                        <div class="stock-actions">
+                            <button class="btn" onclick="market.buyStock('${stock.symbol}')">Buy</button>
+                            <button class="btn" onclick="market.sellStock('${stock.symbol}')">Sell</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                portfolioDiv.innerHTML = Object.entries(this.portfolio).map(([symbol, quantity]) => {
+                    const stock = market.stocks.find(s => s.symbol === symbol);
+                    const totalValue = stock.price * quantity;
+                    return `
+                        <div class="portfolio-item">
+                            <div>${symbol}</div>
+                            <div>Shares: ${quantity}</div>
+                            <div class="${stock.price > stock.priceHistory[0] ? 'price-up' : 'price-down'}">
+                                $${totalValue.toFixed(2)}
+                            </div>
+                        </div>
+                    `;
+                }).join('') || '<div class="portfolio-item">No holdings</div>';
+            }
+        }
+
+        const market = new StockMarket();
+
+        function simulateMarket() {
+            market.simulateMarket();
+        }
+    </script>
+</body>
+</html>
