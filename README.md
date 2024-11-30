@@ -11,3 +11,7 @@ Features
 Objective-
 
 .To simulate the the stock market experience 
+
+Disclaimer-
+
+The enitre code is wriiten by me and I have taken inspiraion and refrence from Pintrest and other websites but some part of the code was written by ai.
